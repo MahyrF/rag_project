@@ -2,3 +2,5 @@ venv/
 __pycache__/
 *pyc
 docs/
+faiss_index/
+.env #secret
