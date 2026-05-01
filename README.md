@@ -113,12 +113,19 @@ Cela permet une meilleure flexibilité, une compréhension plus claire du traite
 ## Structure du projet
 
 .
+
 ├── docs/ # Documents PDF
+
 ├── faiss_index/ # Index FAISS
+
 ├── src/ # code source
+
 |   ├── config.py # Configuration
+
 |   ├── ingest.py # Script d’indexation
+
 |   └── query.py # Script de requête
+
 └── README.md
 
 
