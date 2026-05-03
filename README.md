@@ -1,155 +1,140 @@
-# RAG Pipeline avec LangChain, FAISS et LLM local
+# RAG Pipeline — Interrogation de documents PDF
 
 ## Description
 
-Ce projet implémente un pipeline de type **RAG (Retrieval-Augmented Generation)** permettant d’interroger un ensemble de documents PDF à l’aide d’un modèle de langage.
+Ce projet implémente un pipeline de type **RAG (Retrieval-Augmented Generation)** permettant d'interroger un ensemble de documents PDF à l'aide d'un modèle de langage local.
 
 Le système fonctionne en deux étapes :
-1. Une phase d’indexation des documents
-2. Une phase d’interrogation (query)
+1. Une phase d'indexation des documents
+2. Une phase d'interrogation via une interface ou en ligne de commande
 
-L’objectif est de permettre à un modèle de répondre à des questions en s’appuyant uniquement sur le contenu des documents fournis.
-
----
-
-## Architecture
-
-### Phase 1 : Indexation
-
-PDF → Extraction de texte → Découpage → Embeddings → Index vectoriel
-
-### Phase 2 : Interrogation
-
-Question → Embedding → Recherche → Contexte → LLM → Réponse
+L'objectif est de permettre à un modèle de répondre à des questions en s'appuyant uniquement sur le contenu des documents fournis, sans hallucination externe.
 
 ---
 
 ## Stack technique
 
-- LangChain : orchestration du pipeline
-- FAISS : stockage et recherche vectorielle
-- HuggingFace Embeddings : génération des embeddings
-- Ollama : exécution locale du modèle de langage
-- PyMuPDF : extraction du texte depuis les PDF
+- **LangChain** : orchestration du pipeline
+- **FAISS** : stockage et recherche vectorielle
+- **HuggingFace Embeddings** : génération des embeddings (`all-MiniLM-L6-v2`)
+- **Ollama + Mistral** : exécution locale du modèle de langage (gratuit, sans API externe)
+- **PyMuPDF** : extraction du texte depuis les PDF
+- **Streamlit** : interface utilisateur
 
 ---
 
-## Fonctionnement détaillé
+PDF → Extraction de texte → Découpage en chunks → Embeddings → Index FAISS
 
-### Chargement des documents
+### Phase 2 : Interrogation
 
-Les fichiers PDF sont parcourus depuis un dossier local et convertis en texte. Chaque page devient un document exploitable.
-
-### Découpage en chunks
-
-Les documents sont découpés en segments de taille fixe (par exemple 500 caractères) avec un chevauchement.
-
-Objectifs :
-- respecter les limites des modèles
-- conserver le contexte
-- améliorer la recherche
-
-### Génération des embeddings
-
-Chaque chunk est transformé en vecteur numérique.
-
-Un embedding représente le sens d’un texte. Deux textes similaires auront des vecteurs proches.
-
-### Indexation
-
-Les vecteurs sont stockés dans une base FAISS qui est optimisée pour la recherche de similarité.
-
-### Sauvegarde
-
-L’index est sauvegardé localement pour éviter de recalculer les embeddings.
+Question → Embedding → Recherche sémantique → Contexte → LLM → Réponse
 
 ---
 
-## Phase de requête
-
-### Chargement de l’index
-
-L’index vectoriel est rechargé avec le même modèle d’embedding utilisé lors de l’indexation.  
-Cela garantit que les représentations vectorielles restent cohérentes entre les documents et les requêtes.
-
-### Transformation de la question
-
-La question utilisateur est injectée dans le pipeline.  
-Elle est transmise telle quelle aux différentes étapes de traitement, ce qui permet un flux de données simple et explicite.
-
-### Recherche
-
-Le retriever interroge la base vectorielle pour récupérer les chunks les plus pertinents (top-k).  
-Cette recherche repose sur la similarité sémantique entre la question et les documents.
-
-### Formatage du contexte
-
-Les documents récupérés sont transformés en un bloc de texte unique.  
-Cette étape est explicitement définie dans le pipeline, ce qui permet de contrôler précisément la manière dont le contexte est construit.
-
-### Construction du prompt
-
-Le contexte et la question sont injectés dans un template.  
-Le prompt est conçu pour forcer le modèle à répondre uniquement à partir des informations fournies.
-
-### Génération
-
-Le modèle de langage reçoit le prompt complet et génère une réponse.  
-Chaque transformation (retrieval, formatage, injection) étant définie explicitement, le flux de données reste transparent et contrôlé.
-
-### Résultat
-
-Le système retourne une réponse générée à partir des documents les plus pertinents.
-
----
-
-### Remarque
-
-Cette implémentation repose sur une approche modulaire où chaque étape du pipeline est composée explicitement.  
-Cela permet une meilleure flexibilité, une compréhension plus claire du traitement, et un contrôle fin sur chaque transformation.
-
----
 
 ## Structure du projet
 
-.
+├── docs/                  # Documents PDF source
 
-├── docs/ # Documents PDF
+├── faiss_index/           # Index vectoriel généré (non versionné)
 
-├── faiss_index/ # Index FAISS
+├── src/
 
-├── src/ # code source
+│   ├── app_config.py      # Configuration centralisée
 
-|   ├── config.py # Configuration
+│   ├── ingest.py          # Pipeline d'indexation
 
-|   ├── ingest.py # Script d’indexation
+│   ├── query.py           # Pipeline d'interrogation
 
-|   └── query.py # Script de requête
+│   └── app.py             # Interface Streamlit
+
+├── requirements.txt
 
 └── README.md
 
-
 ---
 
-## Configuration
+## Installation
 
-Dans `config.py` :
+### Prérequis
 
-- `DOCS_DIR` : dossier des PDF
-- `INDEX_DIR` : dossier de l’index
-- `EMBEDDING_MODEL` : modèle d’embedding
-- `LLM_MODEL` : modèle LLM utilisé
+- Python 3.10+
+- [Ollama](https://ollama.com) installé sur la machine
+
+### Setup
+
+```bash
+git clone https://github.com/ton-user/rag-pipeline.git
+cd rag-pipeline
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+ollama pull mistral
+```
 
 ---
 
 ## Utilisation
 
-### Indexation
+### Interface Streamlit (recommandé)
 
+```bash
+streamlit run src/app.py
+```
 
-python ingest.py
+1. Chargez vos fichiers PDF via le panneau latéral
+2. Cliquez sur **Analyser les documents**
+3. Posez vos questions dans le champ de saisie
 
+### En ligne de commande
 
-### Query
+```bash
+# Indexation
+python src/ingest.py
 
-python query.py
+# Interrogation
+python src/query.py
+```
+
+---
+
+## Fonctionnement détaillé
+
+### Découpage en chunks
+
+Les documents sont découpés en segments de taille fixe avec chevauchement pour conserver le contexte entre deux morceaux consécutifs.
+
+### Embeddings
+
+Chaque chunk est transformé en vecteur numérique qui capture son sens sémantique. Deux textes similaires produiront des vecteurs proches, ce qui permet une recherche par similarité plutôt que par mot-clé exact.
+
+### Recherche vectorielle
+
+À chaque question, le retriever récupère les k chunks les plus proches sémantiquement et les transmet au LLM comme contexte.
+
+### Génération
+
+Le modèle reçoit le contexte extrait et la question, et génère une réponse ancrée sur les documents. Le prompt est conçu pour limiter les réponses aux informations présentes dans les documents.
+
+---
+
+## Configuration
+
+Dans `src/app_config.py` :
+
+| Paramètre | Description |
+|---|---|
+| `DOCS_DIR` | Dossier des PDF source |
+| `INDEX_DIR` | Dossier de l'index FAISS |
+| `EMBEDDING_MODEL` | Modèle d'embedding HuggingFace |
+| `LLM_MODEL` | Modèle Ollama utilisé |
+| `CHUNK_SIZE` | Taille des chunks en tokens |
+| `CHUNK_OVERLAP` | Chevauchement entre chunks |
+| `TOP_K` | Nombre de chunks récupérés par requête |
+
+---
+
+## Améliorations possibles
+
+- Support multilingue avec un modèle d'embedding adapté
+- Déploiement via FastAPI
