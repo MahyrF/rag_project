@@ -65,7 +65,7 @@ Question → Embedding → Recherche sémantique → Contexte → LLM → Répon
 
 ```bash
 git clone https://github.com/MahyrF/rag_project.git
-cd rag-pipeline
+cd rag_project
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
