@@ -59,7 +59,11 @@ Question → Embedding → Recherche sémantique → Contexte → LLM → Répon
 ### Prérequis
 
 - Python 3.10+
-- [Ollama](https://ollama.com) installé sur la machine
+- [Ollama](https://ollama.com) installé sur la machine:
+  
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
 
 ### Setup
 
