@@ -46,9 +46,7 @@ Question → Embedding → Recherche sémantique → Contexte → LLM → Répon
 
 ---
 
-## Installation
-
-### Prérequis
+## Prérequis
 
 - Python 3.10+
 - [UV](https://docs.astral.sh/uv/) installé sur la machine:
@@ -60,11 +58,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - [Ollama](https://ollama.com) installé sur la machine:
   
 ```bash
-curl -fsSL https://ollama.com/install.sh | sh
+sudo snap install ollama
 ```
 
-### Setup
+## Installation
 
+### Option 1 : Avec UV
 ```bash
 git clone https://github.com/MahyrF/rag_project.git
 cd rag_project
@@ -72,16 +71,40 @@ uv sync
 
 ollama pull mistral
 ```
+#### Lancer l'application
+
+```bash
+uv run streamlit run src/rag_project/app.py
+```
+
 
 ---
+
+### Option 2 : Avec Docker
+
+#### Prérequis
+
+- Ollama doit écouter sur toutes les interfaces réseau, pas uniquement `localhost`, 
+  pour être accessible depuis le conteneur :
+```bash
+  sudo snap set ollama host=0.0.0.0:11434
+  sudo snap set ollama origins='*'
+  sudo systemctl restart snap.ollama.listener.service
+```
+
+#### Lancer l'application
+
+```bash
+docker compose up
+```
+
+
+
 
 ## Utilisation
 
 ### Interface Streamlit (recommandé)
 
-```bash
-uv run streamlit run src/rag_project/app.py
-```
 
 1. Chargez vos fichiers PDF via le panneau latéral
 2. Cliquez sur **Analyser les documents**
@@ -124,6 +147,7 @@ Dans `src/app_config.py` :
 | `INDEX_DIR` | Dossier de l'index FAISS |
 | `EMBEDDING_MODEL` | Modèle d'embedding HuggingFace |
 | `LLM_MODEL` | Modèle Ollama utilisé |
+| `PROMPT_MODEL` | Instructions pour le comportement du modèle |
 | `CHUNK_SIZE` | Taille des chunks en tokens |
 | `CHUNK_OVERLAP` | Chevauchement entre chunks |
 | `TOP_K` | Nombre de chunks récupérés par requête |
@@ -134,3 +158,11 @@ Dans `src/app_config.py` :
 
 - Support multilingue avec un modèle d'embedding adapté
 - Déploiement via FastAPI
+
+### Note sur la sécurité (dev local)
+
+Cette configuration expose Ollama sur toutes les interfaces réseau (`0.0.0.0`) 
+pour permettre la communication avec le conteneur Docker. C'est adapté à un usage 
+en développement local, mais pas recommandé tel quel en production : idéalement, 
+Ollama devrait tourner dans son propre conteneur sur un réseau Docker interne, 
+sans port exposé à l'extérieur.
