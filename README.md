@@ -23,11 +23,15 @@ L'objectif est de permettre à un modèle de répondre à des questions en s'app
 
 ---
 
-PDF → Extraction de texte → Découpage en chunks → Embeddings → Index FAISS
+## Étapes de fonctionnement
+
+### Phase 1 : Indexation
+
+PDF &rarr; Extraction de texte &rarr; Découpage en chunks &rarr; Embeddings &rarr; Index FAISS
 
 ### Phase 2 : Interrogation
 
-Question → Embedding → Recherche sémantique → Contexte → LLM → Réponse
+Question &rarr; Embedding &rarr; Recherche sémantique &rarr; Contexte &rarr; LLM &rarr; Réponse
 
 ---
 
@@ -35,14 +39,12 @@ Question → Embedding → Recherche sémantique → Contexte → LLM → Répon
 ## Structure du projet
 
 
-├── faiss_index/           # Index vectoriel généré (non versionné)
-<br>├── src/
-<br>│   ├── app_config.py      # Configuration centralisée
-<br>│   ├── ingest.py          # Pipeline d'indexation
-<br>│   ├── query.py           # Pipeline d'interrogation
-<br>│   └── app.py             # Interface Streamlit
-<br>├── requirements.txt
-<br>└── README.md
+├─ faiss_index/           # Index vectoriel généré (non versionné)
+<br>├─ src/rag_project
+<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├─ app_config.py      # Configuration (paramètres)
+<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├─ ingest.py          # Pipeline d'indexation
+<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├─ query.py           # Pipeline d'interrogation
+<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └─ app.py             # Interface Streamlit
 
 ---
 
@@ -140,7 +142,7 @@ Le modèle reçoit le contexte extrait et la question, et génère une réponse 
 
 ## Configuration
 
-Dans `src/app_config.py` :
+Dans `app_config.py` :
 
 | Paramètre | Description |
 |---|---|
@@ -156,7 +158,6 @@ Dans `src/app_config.py` :
 
 ## Améliorations possibles
 
-- Support multilingue avec un modèle d'embedding adapté
 - Déploiement via FastAPI
 
 ### Note sur la sécurité (dev local)
